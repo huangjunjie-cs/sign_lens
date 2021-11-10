@@ -40,40 +40,40 @@ class TestSignLens(unittest.TestCase):
     #     self.assertEqual(neg_num, len(self.model.neg_G.edges))
     #     self.assertEqual( ratio * 100 // 1 / 100,  0.93)
 
-    def test_calc_signed_in_and_out_degree(self):
-        G_in_degree, pos_G_in_degree, neg_G_in_degree = self.model.calc_signed_in_degree()
-        G_out_degree, pos_G_out_degree, neg_G_out_degree = self.model.calc_signed_in_degree()
-        in_degree_total = sum(G_in_degree.values())
-        out_degree_total = sum(G_out_degree.values())
-        self.assertEqual(in_degree_total, out_degree_total)
+    # def test_calc_signed_in_and_out_degree(self):
+    #     G_in_degree, pos_G_in_degree, neg_G_in_degree = self.model.calc_signed_in_degree()
+    #     G_out_degree, pos_G_out_degree, neg_G_out_degree = self.model.calc_signed_in_degree()
+    #     in_degree_total = sum(G_in_degree.values())
+    #     out_degree_total = sum(G_out_degree.values())
+    #     self.assertEqual(in_degree_total, out_degree_total)
 
-        neg_in_degree_total = sum(neg_G_in_degree.values())
-        neg_out_degree_total = sum(neg_G_out_degree.values())
-        self.assertEqual(neg_in_degree_total, neg_out_degree_total)
+    #     neg_in_degree_total = sum(neg_G_in_degree.values())
+    #     neg_out_degree_total = sum(neg_G_out_degree.values())
+    #     self.assertEqual(neg_in_degree_total, neg_out_degree_total)
 
-        pos_in_degree_total = sum(pos_G_in_degree.values())
-        pos_out_degree_total = sum(pos_G_out_degree.values())
-        self.assertEqual(pos_in_degree_total, pos_out_degree_total)
+    #     pos_in_degree_total = sum(pos_G_in_degree.values())
+    #     pos_out_degree_total = sum(pos_G_out_degree.values())
+    #     self.assertEqual(pos_in_degree_total, pos_out_degree_total)
 
-    def test_calc_hop_dist(self):
-        s = self.model.calc_hop_dist()
-        v = s.values()
-        print(np.histogram(v))
+    # def test_calc_hop_dist(self):
+    #     s = self.model.calc_hop_dist()
+    #     v = s.values()
+    #     print(np.histogram(v))
 
     # def test_calc_singular_value_dist(self):
-    #     s = self.model.calc_singular_value_dist()
-    #     print(np.histogram(s))
+    #     s1 = self.model.calc_singular_value_dist()
+    #     import ipdb; ipdb.set_trace()
     
-    def test_calc_signed_triangle_dist(self):
-        ratio = self.model.calc_balanced_triangle_dist()
-        print(ratio)
-        self.assertEqual(round(ratio[0], 4), 0.8805)
-        self.assertEqual(round(ratio[1], 4), 0.1195)
+    # def test_calc_signed_triangle_dist(self):
+    #     ratio = self.model.calc_balanced_triangle_dist()
+    #     print(ratio)
+    #     self.assertEqual(round(ratio[0], 4), 0.8805)
+    #     self.assertEqual(round(ratio[1], 4), 0.1195)
 
 
-    def test_calc_balance_triads_dist(self):
-        ratio = self.model.calc_balance_triads_dist()
-        print(ratio)
+    # def test_calc_balance_triads_dist(self):
+    #     ratio = self.model.calc_balance_triads_dist()
+    #     print(ratio)
 
 
     def test_report_signed_metrics(self):

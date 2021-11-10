@@ -129,6 +129,23 @@ class SignLens:
         ax.figure.savefig(fpath)
         args[f'{fname} sign output'] = fpath
 
+        ## plot Sigular Value
+        sv = self.calc_singular_value_dist()
+        ind = range(1, len(sv)+1)
+        fig, ax = plt.subplots()
+        ax.scatter(ind[:100], sv[:100])
+        ax.margins(x=0)
+        ax.set_ylim([1, 100])
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+        ax.set_xlabel('Top-k')
+        ax.set_ylabel('Singular Values')
+        ax.set_aspect(1./ax.get_data_ratio())
+        fpath = os.path.join(output_dir, 'Top-K.pdf')
+        ax.figure.savefig(fpath)
+        args['Singular value distribution'] = fpath
+
+
         keys = args.keys()
         t = Texttable()
         t.add_rows([["Metrics", "Value"]] + [[k.replace("_", " ").capitalize(), args[k]] for k in keys])
