@@ -4,10 +4,12 @@ import pandas as pd
 import networkx as nx
 import numpy as np
 from texttable import Texttable
-from .utils import SignedTriadFeaExtra
 from collections import Counter
 import matplotlib.pyplot as plt
+import numpy.typing as npt
 
+
+from .utils import SignedTriadFeaExtra
 
 class SignLens:
     """
@@ -23,7 +25,7 @@ class SignLens:
         Parameters
         ----------
         edgelist_fpath : str
-            It is the csv  path for analyzing
+            It is the file path for analyzing, 
         seperator : str, optional
             The file seperator, by default '\t'
         """
@@ -37,7 +39,6 @@ class SignLens:
         self.edge_df['source_node'] = self.edge_df['source_node'].apply(lambda x: self.node_dict[x])
         self.edge_df['target_node'] = self.edge_df['target_node'].apply(lambda x: self.node_dict[x])
 
-
         self.G = nx.DiGraph(self.edge_df[['source_node', 'target_node']].values.tolist())
         pos_edge = self.edge_df[self.edge_df['sign'] > 0]
         self.pos_G = nx.DiGraph(pos_edge[['source_node', 'target_node']].values.tolist())
@@ -45,20 +46,24 @@ class SignLens:
         self.neg_G = nx.DiGraph(neg_edge[['source_node', 'target_node']].values.tolist())
 
     def report_signed_metrics(self, output_dir='output') -> str:
-
         """
         Report signed metrics for a signed network.
 
         The main signed network metrics include *sign distribution*, *balanced triangle distrubition*, *signed in-degree distribution*, *signed out-degree distribution*, *in-degree distribution*, *out-degree distribution*, *hop plot* and *singular value distribution* according to [1].
-
+        
         [1] BalanSiNG: Fast and Scalable Generation of Realistic Signed Networks
 
-        Returns
-        ------
-        The table for signed metrics
-        """
-        # 
+        Parameters
+        ----------
+        output_dir : str, optional
+            It will output some figures to the ourput_dir, by default 'output'
 
+        Returns
+        -------
+        str
+            The table for signed metrics. 
+            
+        """
         args = {}
         
 
@@ -66,12 +71,10 @@ class SignLens:
         args['The number of nodes'] = node_num
         args['The number of edges'] = edge_num
         args['sign distribution (+)'] = pos_r
-        triads_dist, b_ratio, u_ratio = self.calc_balance_triads_dist()
+        triads_dist, b_ratio, u_ratio = self.calc_signed_triads_dist()
         args['balanced triangle distribution'] =b_ratio
         args['unbalanced triangle distribution'] =u_ratio
         args['signed triangle  (+++, ++-, +--, ---)'] = tuple([round(i, 4) for i in triads_dist])
-
-        
 
         
         ### export plot for degree distributions
@@ -154,11 +157,29 @@ class SignLens:
 
     
     def calc_node_num(self) -> int:
+        """
+        calculate the number of nodes
+
+        Returns
+        -------
+        int
+            the node number
+        """
         node_list = self.edge_df.target_node.tolist() + self.edge_df.source_node.tolist()
         return len(set(node_list))
 
+
     def calc_edge_num(self) -> int:
+        """
+        calculate the number of edges
+
+        Returns
+        -------
+        int
+            the edge number
+        """
         return len(self.edge_df)
+
 
     def calc_sign_dist(self) -> tuple:
         """
@@ -193,14 +214,12 @@ class SignLens:
 
     def calc_signed_out_degree(self) -> tuple:
         """
-        calc_signed_out_degree [summary]
-
-        [extended_summary]
+        calculate signed out degree
 
         Returns
         -------
         tuple
-            [description]
+            (G_in_degree, pos_G_in_degree, neg_G_in_dergee)
         """
         G_out_degree = {i[0]:i[1] for i in self.G.out_degree()}
         pos_G_out_degree = {i[0]:i[1] for i in self.pos_G.out_degree()}
@@ -209,7 +228,15 @@ class SignLens:
         return (G_out_degree, pos_G_out_degree, neg_G_out_dergee) 
     
 
-    def calc_hop_dist(self):
+    def calc_hop_dist(self) -> dict:
+        """
+        calculate the distrubiton of hops
+
+        Returns
+        -------
+        dict
+            the dict of ``{'d': counts }``
+        """
         short_dict = {i[0]: i[1] for i in nx.shortest_path_length(self.G)}
         hop_dist = {}
         v_max = 0
@@ -219,25 +246,46 @@ class SignLens:
                 if not np.isinf(k):
                     hop_dist[key] = k
                     if k > v_max: v_max = k
-        print(v_max)
         return hop_dist
 
 
-    def calc_singular_value_dist(self):
+    def calc_singular_value_dist(self) -> np.array:
+        """
+        calculated singular value distribution 
+
+        Returns
+        -------
+            return the svd results of undirected unsigned matrice 
+        """
         uG = self.G.to_undirected()
         A = nx.to_numpy_matrix(uG)
         u, s, vh = np.linalg.svd(A, full_matrices=True)
         return s
 
 
+    def calc_balanced_triangle_dist(self) -> tuple:
+        """
+        calculate balanced triangle distributions
 
-    def calc_balanced_triangle_dist(self):
+        Returns
+        -------
+        tuple
+            (balanced triads, unbalanced triads)
+        """
         model = SignedTriadFeaExtra(self.edgelist_fpath, undirected=False)
         s0, s1, s2, s3 = model.calc_balance_and_status_triads_num()
         ratio = (s1 + s2) / s0
         return ratio, 1 - ratio
 
-    def calc_balance_triads_dist(self):
+    def calc_signed_triads_dist(self) -> tuple:
+        """
+        calculate signed triads distributions
+
+        Returns
+        -------
+        tuple
+            ((+++, ++-, +--, ---), balanced triads, unbalanced triads)
+        """
         model = SignedTriadFeaExtra(self.edgelist_fpath, undirected=False)
         res = model.calc_balance_triads_dist()
         # +++ ++- +-- ---
@@ -245,18 +293,3 @@ class SignLens:
         u_triad = res[1] + res[3]
         return res, b_triad, u_triad
 
-
-    def get_top_nodes(self, sign=None):
-        pass
-
-    def get_relationship(self):
-        pass
-
-    def get_subgraph_clustering(self):
-        pass
-
-    def get_frustration_index(self):
-        pass
-
-    def get_spectral_index(self):
-        pass
