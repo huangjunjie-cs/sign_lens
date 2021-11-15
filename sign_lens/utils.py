@@ -3,6 +3,7 @@ import os
 import numpy as np
 from collections import defaultdict
 
+
 class SignedTriadFeaExtra(object):
 
     def __init__(self, edgelist_fpath, undirected=False, seperator='\t'):
@@ -15,8 +16,8 @@ class SignedTriadFeaExtra(object):
     def init_edgelists(self, edgelist_fpath):
         pos_out_edgelists = defaultdict(list)
         neg_out_edgelists = defaultdict(list)
-        pos_in_edgelists  = defaultdict(list)
-        neg_in_edgelists  = defaultdict(list)
+        pos_in_edgelists = defaultdict(list)
+        neg_in_edgelists = defaultdict(list)
         with open(edgelist_fpath) as f:
             for line in f.readlines():
                 x, y, z = line.split(self.seperator)
@@ -61,7 +62,6 @@ class SignedTriadFeaExtra(object):
                       self.pos_out_edgelists[v] + self.neg_out_edgelists[v]
         return len(set(u_neighbors).intersection(set(v_neighbors)))
 
-
     def extract_triad_counts(self, u, v) -> tuple:
         """
         ++ +- -+ --
@@ -93,19 +93,19 @@ class SignedTriadFeaExtra(object):
 
     def calc_balance_triads_num(self):
         s0, s1, s2, s3 = self.calc_balance_and_status_triads_num()
-        return s1  + s2, s0
+        return s1 + s2, s0
 
     def calc_balance_triads_dist(self):
-        t1 = [] # +++ 
-        t2 = [] # ++-
-        t3 = [] # +--
-        t4 = [] # ---
+        t1 = []  # +++ 
+        t2 = []  # ++-
+        t3 = []  # +--
+        t4 = []  # ---
         for x in list(self.pos_out_edgelists):
             for y in self.pos_out_edgelists[x]:
-                mask1 = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0] # +++ 
-                mask2 = [0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0] #  ++- 
-                mask3 = [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1] #  +--
-                mask4 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] #  ---
+                mask1 = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]  # +++
+                mask2 = [0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0]  # ++-
+                mask3 = [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1]  # +--
+                mask4 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]  # ---
                 rs = self.extract_triad_counts(x, y)
                 t1.append(np.dot(mask1, rs))
                 t2.append(np.dot(mask2, rs))
@@ -114,10 +114,10 @@ class SignedTriadFeaExtra(object):
 
         for x in list(self.neg_out_edgelists):
             for y in self.neg_out_edgelists[x]:
-                mask1 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] # +++ 
-                mask2 = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0] #  ++- 
-                mask3 = [0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0] #  +--
-                mask4 = [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1] #  ---
+                mask1 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]  # +++ 
+                mask2 = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]  # ++- 
+                mask3 = [0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0]  # +--
+                mask4 = [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1]  # ---
                 rs = self.extract_triad_counts(x, y)
                 t1.append(np.dot(mask1, rs))
                 t2.append(np.dot(mask2, rs))
@@ -128,10 +128,9 @@ class SignedTriadFeaExtra(object):
         s2 = np.sum(t2)
         s3 = np.sum(t3)
         s4 = np.sum(t4)
-        res = np.array([s1, s2, s3, s4]) 
+        res = np.array([s1, s2, s3, s4])
 
-        return  res / res.sum()
-
+        return res / res.sum()
 
     def calc_balance_and_status_triads_num(self):
         rs0 = []
@@ -140,9 +139,9 @@ class SignedTriadFeaExtra(object):
         rs3 = []
         for x in list(self.pos_out_edgelists):
             for y in self.pos_out_edgelists[x]:
-                mask1 = [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1] # both satify
-                mask2 = [0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0] # only balance
-                mask3 = [0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0] # only status
+                mask1 = [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1]  # both satify
+                mask2 = [0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]  # only balance
+                mask3 = [0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0]  # only status
                 rs = self.extract_triad_counts(x, y)
                 rs0.append(rs)
                 rs1.append(np.dot(mask1, rs))
@@ -165,15 +164,14 @@ class SignedTriadFeaExtra(object):
         s2 = np.sum(rs2)
         s3 = np.sum(rs3)
         print('all triangle', s0)
-        print('both', s1, s1/ s0)
-        print('balance', s2, s2/ s0)
-        print('status', s3, s3/ s0)
+        print('both', s1, s1 / s0)
+        print('balance', s2, s2 / s0)
+        print('status', s3, s3 / s0)
         return s0, s1, s2, s3
-        
+
 
 class FrustrationIndex:
     pass
-
 
 
 if __name__ == "__main__":

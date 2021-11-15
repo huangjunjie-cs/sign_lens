@@ -4,12 +4,12 @@
 import os
 import unittest
 
-import numpy as np
 from sign_lens import SignLens
 from sign_lens import SignedTriadFeaExtra
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 class TestSignedTriadFeaExtra(unittest.TestCase):
 
@@ -63,18 +63,16 @@ class TestSignLens(unittest.TestCase):
     # def test_calc_singular_value_dist(self):
     #     s1 = self.model.calc_singular_value_dist()
     #     import ipdb; ipdb.set_trace()
-    
+
     # def test_calc_signed_triangle_dist(self):
     #     ratio = self.model.calc_balanced_triangle_dist()
     #     print(ratio)
     #     self.assertEqual(round(ratio[0], 4), 0.8805)
     #     self.assertEqual(round(ratio[1], 4), 0.1195)
 
-
     # def test_calc_balance_triads_dist(self):
     #     ratio = self.model.calc_balance_triads_dist()
     #     print(ratio)
-
 
     def test_report_signed_metrics(self):
         self.model.report_signed_metrics()
@@ -92,6 +90,7 @@ class TestSignLens(unittest.TestCase):
         # check that s.split fails when the separator is not a string
         with self.assertRaises(TypeError):
             s.split(2)
+
 
 if __name__ == '__main__':
     unittest.main()

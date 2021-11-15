@@ -1,15 +1,15 @@
 import os
-import json
+
 import pandas as pd
 import networkx as nx
 import numpy as np
+
 from texttable import Texttable
 from collections import Counter
 import matplotlib.pyplot as plt
-import numpy.typing as npt
-
 
 from .utils import SignedTriadFeaExtra
+
 
 class SignLens:
     """
@@ -25,7 +25,7 @@ class SignLens:
         Parameters
         ----------
         edgelist_fpath : str
-            It is the file path for analyzing, 
+            It is the file path for analyzing.
         seperator : str, optional
             The file seperator, by default '\t'
         """
@@ -50,7 +50,7 @@ class SignLens:
         Report signed metrics for a signed network.
 
         The main signed network metrics include *sign distribution*, *balanced triangle distrubition*, *signed in-degree distribution*, *signed out-degree distribution*, *in-degree distribution*, *out-degree distribution*, *hop plot* and *singular value distribution* according to [1].
-        
+
         [1] BalanSiNG: Fast and Scalable Generation of Realistic Signed Networks
 
         Parameters
@@ -61,29 +61,27 @@ class SignLens:
         Returns
         -------
         str
-            The table for signed metrics. 
-            
+            The table for signed metrics.
         """
         args = {}
-        
 
         node_num, edge_num, pos_r = self.calc_sign_dist()
         args['The number of nodes'] = node_num
         args['The number of edges'] = edge_num
         args['sign distribution (+)'] = pos_r
         triads_dist, b_ratio, u_ratio = self.calc_signed_triads_dist()
-        args['balanced triangle distribution'] =b_ratio
-        args['unbalanced triangle distribution'] =u_ratio
+        args['balanced triangle distribution'] = b_ratio
+        args['unbalanced triangle distribution'] = u_ratio
         args['signed triangle  (+++, ++-, +--, ---)'] = tuple([round(i, 4) for i in triads_dist])
 
-        
-        ### export plot for degree distributions
+        # export plot for degree distributions
         G_in_degree, pos_G_in_degree, neg_G_in_degree = self.calc_signed_in_degree()
         G_out_degree, pos_G_out_degree, neg_G_out_degree = self.calc_signed_in_degree()
 
         fnames = ['In-degree', 'Out-degree']
-        datas = [(G_in_degree, pos_G_in_degree, neg_G_in_degree), (G_out_degree, pos_G_out_degree, pos_G_out_degree)]
-        
+        datas = [(G_in_degree, pos_G_in_degree, neg_G_in_degree),
+                 (G_out_degree, pos_G_out_degree, pos_G_out_degree)]
+
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
 
@@ -108,7 +106,7 @@ class SignLens:
             ax.scatter(cc.keys(), cc.values(), s=60, alpha=0.7, color='g', label='Positive')
             cc = Counter(list(data2.values()))
             ax.scatter(cc.keys(), cc.values(), s=60, alpha=0.7, color="r", label='Negative')
-            
+
             ax.set_xscale("log")
             ax.set_yscale("log")
             ax.set_xlabel(fname)
@@ -118,7 +116,7 @@ class SignLens:
             ax.figure.savefig(fpath)
             args[f'{fname} sign output'] = fpath
 
-        ## plot hopcnt
+        # plot hopcnt
         fname = 'Hop'
         fpath = os.path.join(output_dir, fname+'.pdf')
         res = self.calc_hop_dist()
@@ -132,7 +130,7 @@ class SignLens:
         ax.figure.savefig(fpath)
         args[f'{fname} sign output'] = fpath
 
-        ## plot Sigular Value
+        # plot Sigular Value
         sv = self.calc_singular_value_dist()
         ind = range(1, len(sv)+1)
         fig, ax = plt.subplots()
@@ -148,14 +146,12 @@ class SignLens:
         ax.figure.savefig(fpath)
         args['Singular value distribution'] = fpath
 
-
         keys = args.keys()
         t = Texttable()
         t.add_rows([["Metrics", "Value"]] + [[k.replace("_", " ").capitalize(), args[k]] for k in keys])
         print('=' * 10)
         print(t.draw())
 
-    
     def calc_node_num(self) -> int:
         """
         calculate the number of nodes
@@ -168,7 +164,6 @@ class SignLens:
         node_list = self.edge_df.target_node.tolist() + self.edge_df.source_node.tolist()
         return len(set(node_list))
 
-
     def calc_edge_num(self) -> int:
         """
         calculate the number of edges
@@ -179,7 +174,6 @@ class SignLens:
             the edge number
         """
         return len(self.edge_df)
-
 
     def calc_sign_dist(self) -> tuple:
         """
@@ -193,24 +187,22 @@ class SignLens:
         pos_num = len(self.edge_df[self.edge_df['sign'] > 0])
         neg_num = len(self.edge_df[self.edge_df['sign'] < 0])
 
-        return (pos_num, neg_num, pos_num / (pos_num + neg_num) )
-
+        return (pos_num, neg_num, pos_num / (pos_num + neg_num))
 
     def calc_signed_in_degree(self) -> tuple:
         """
-        calculate signed in degree 
+        calculate signed in degree
 
         Returns
         -------
         tuple
             (G_in_degree, pos_G_in_degree, neg_G_in_dergee)
         """
-        G_in_degree = {i[0]:i[1] for i in self.G.in_degree()}
-        pos_G_in_degree = {i[0]:i[1] for i in self.pos_G.in_degree()}
-        neg_G_in_dergee = {i[0]:i[1] for i in self.neg_G.in_degree()}
+        G_in_degree = {i[0]: i[1] for i in self.G.in_degree()}
+        pos_G_in_degree = {i[0]: i[1] for i in self.pos_G.in_degree()}
+        neg_G_in_dergee = {i[0]: i[1] for i in self.neg_G.in_degree()}
 
-
-        return (G_in_degree, pos_G_in_degree, neg_G_in_dergee) 
+        return (G_in_degree, pos_G_in_degree, neg_G_in_dergee)
 
     def calc_signed_out_degree(self) -> tuple:
         """
@@ -221,12 +213,11 @@ class SignLens:
         tuple
             (G_in_degree, pos_G_in_degree, neg_G_in_dergee)
         """
-        G_out_degree = {i[0]:i[1] for i in self.G.out_degree()}
-        pos_G_out_degree = {i[0]:i[1] for i in self.pos_G.out_degree()}
-        neg_G_out_dergee = {i[0]:i[1] for i in self.neg_G.out_degree()}
+        G_out_degree = {i[0]: i[1] for i in self.G.out_degree()}
+        pos_G_out_degree = {i[0]: i[1] for i in self.pos_G.out_degree()}
+        neg_G_out_dergee = {i[0]: i[1] for i in self.neg_G.out_degree()}
 
-        return (G_out_degree, pos_G_out_degree, neg_G_out_dergee) 
-    
+        return (G_out_degree, pos_G_out_degree, neg_G_out_dergee)
 
     def calc_hop_dist(self) -> dict:
         """
@@ -245,9 +236,9 @@ class SignLens:
                 key = tuple((i, j))
                 if not np.isinf(k):
                     hop_dist[key] = k
-                    if k > v_max: v_max = k
+                    if k > v_max: 
+                        v_max = k
         return hop_dist
-
 
     def calc_singular_value_dist(self) -> np.array:
         """
@@ -261,7 +252,6 @@ class SignLens:
         A = nx.to_numpy_matrix(uG)
         u, s, vh = np.linalg.svd(A, full_matrices=True)
         return s
-
 
     def calc_balanced_triangle_dist(self) -> tuple:
         """
@@ -292,4 +282,3 @@ class SignLens:
         b_triad = res[0] + res[2]
         u_triad = res[1] + res[3]
         return res, b_triad, u_triad
-

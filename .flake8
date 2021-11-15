@@ -6,5 +6,7 @@ exclude =
     dist,
     versioneer.py,
     sign_lens/_version.py,
-    docs/source/conf.py
+    venv,
+    docs/source/conf.py,
+    __init__.py
 max-line-length = 115
