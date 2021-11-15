@@ -7,14 +7,11 @@ version: 2
 
 # Set the version of Python and other tools you might need
 build:
-  os: ubuntu-20.04
-  tools:
-    python: "3.8"
-    
+    image: latest
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
-   configuration: docs/source/conf.py
+    configuration: docs/source/conf.py
 
 # If using Sphinx, optionally build your docs in additional formats such as PDF
 # formats:
@@ -22,7 +19,7 @@ sphinx:
 
 # Optionally declare the Python requirements required to build your docs
 python:
-  install:
-    - requirements: requirements-dev.txt
-    - method: setuptools
+    install:
+      - requirements: docs/requirements.txt
+      - method: setuptools
         path: .
