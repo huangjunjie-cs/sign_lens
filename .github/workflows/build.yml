@@ -1,0 +1,40 @@
+name: CI
+
+
+on:
+
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  workflow_dispatch:
+
+jobs:
+    build:
+      runs-on: ${{ matrix.os }}
+        
+      strategy:
+        matrix:
+          os: [ubuntu-18.04]
+
+      steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+      - run: which python
+      - name: Run installation.
+        run: |
+          pip install .
+          pip install requirements.txt
+          python setup.py install
+      - name: Test coverage.
+        run: |
+          python setup.py test
+      - name: Flake8
+        run: |
+          flake8  --max-line-length=115
+      - name: Make docs
+        run: |
+          make -C docs html  # Build the documentation.
