@@ -2,6 +2,7 @@
 Usage
 =====
 
+
 Start by importing sign_lens.
 
 .. code-block:: python
@@ -9,3 +10,4 @@ Start by importing sign_lens.
     from sign_lens import SignLens
     model = SignLens('./xxx.edgelist')
     model.report_signed_metrics()
+
