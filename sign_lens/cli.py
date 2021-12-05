@@ -22,7 +22,7 @@ def error(e, message):
 def check(args):
     """ Error checking
     """
-    if not os.path.exists(args.fpath):
+    if not os.path.exists(args.file):
         error("The file does not exit", 
               "Please input the file you want to analyze")
 

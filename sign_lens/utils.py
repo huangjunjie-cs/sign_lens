@@ -1,6 +1,7 @@
 
 import os
 import numpy as np
+import scipy.sparse as sp
 from collections import defaultdict
 
 
@@ -63,11 +64,12 @@ class SignedTriadFeaExtra(object):
         return len(set(u_neighbors).intersection(set(v_neighbors)))
 
     def extract_triad_counts(self, u, v) -> tuple:
-        """
-        ++ +- -+ --
-        ++ +- -+ --
-        ++ +- -+ --
-        ++ +- -+ --
+        r"""
+        .. math::
+
+            A \times B \alpha
+
+        
         """
         d1_1 = len(set(self.pos_out_edgelists[u]).intersection(set(self.pos_in_edgelists[v])))
         d1_2 = len(set(self.pos_out_edgelists[u]).intersection(set(self.neg_in_edgelists[v])))
@@ -170,8 +172,213 @@ class SignedTriadFeaExtra(object):
         return s0, s1, s2, s3
 
 
-class FrustrationIndex:
-    pass
+class SignedTriadFeaExtraByMatrce:
+
+    def __init__(self, edgelist_fpath, undirected=False, seperator='\t'):
+        self.undirected = undirected
+        self.seperator = seperator
+        res = self.init_matrice(edgelist_fpath)
+        
+
+    def init_matrice(self, edgelist_fpath):
+        pos_edgelist = []
+        neg_edgelist = []
+        node_set = {}
+        with open(edgelist_fpath) as f:
+            for line in f.readlines():
+                x, y, z = line.split(self.seperator)
+                if not x in node_set:
+                    node_set[x] = len(node_set)
+                if not y in node_set:
+                    node_set[y] = len(node_set)
+
+                x = int(x)
+                y = int(y)
+                z = int(z)
+                if z == 1:
+                    pos_edgelist.append((x, y))
+                else:
+                    neg_edgelist.append((x, y))
+
+        node_num = len(node_set)
+
+        pos_edge_array = np.array(pos_edgelist)
+        neg_edge_array = np.array(neg_edgelist)
+        
+        row = pos_edge_array[:, 0]
+        col = pos_edge_array[:, 1]
+        data = np.ones_like(pos_edge_array[:, 0])
+        self.pos_mat = sp.coo_matrix((data, (row, col)), shape=(node_num, node_num))
+        
+        row = neg_edge_array[:, 0]
+        col = neg_edge_array[:, 1]
+        data = np.ones_like(neg_edge_array[:, 0])
+        self.neg_mat = sp.coo_matrix((data, (row, col)), shape=(node_num, node_num))
+
+
+
+    def calc_balance_and_status_triads_num(self):
+        r"""
+        calc_balance_and_status_triads_num 
+        .. math::
+
+            {A_1^+} \cdot {A_1^+} \odot (1 - I)\odot {A_1^+} 
+
+
+        """
+        A_plus = self.pos_mat
+        A_minus = self.neg_mat
+        ts = [
+            [(A_plus, A_plus), (A_plus, A_minus), (A_minus, A_plus), (A_minus, A_minus)],
+            [(A_plus, A_plus.T), (A_plus, A_minus.T), (A_minus, A_plus.T), (A_minus, A_minus.T)],
+            [(A_plus.T, A_plus.T), (A_plus.T, A_minus.T), (A_minus.T, A_plus.T), (A_minus.T, A_minus.T)],
+            [(A_plus.T, A_plus), (A_plus.T, A_minus), (A_minus.T, A_plus), (A_minus.T, A_minus)],
+        ]
+
+        rs0 = []
+        rs1 = []
+        rs2 = []
+        rs3 = []   
+        # pos
+        rs = []
+        for t in ts:
+            for a, b in t:
+                res = np.dot(a, b)
+                res.setdiag(0)
+                res = res.multiply(A_plus)
+                rs.append(res.sum())
+        print(rs)
+        mask1 = [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1]  # both satify
+        mask2 = [0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]  # only balance
+        mask3 = [0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0]  # only status
+        rs = np.array(rs)
+        rs0.append(rs)
+        rs1.append(np.dot(mask1, rs))
+        rs2.append(np.dot(mask2, rs))
+        print(rs2)
+        rs3.append(np.dot(mask3, rs))
+
+        rs = []
+        for t in ts:
+            for a, b in t:
+                res = np.dot(a, b)
+                res.setdiag(0)
+                res = res.multiply(A_minus)
+                rs.append(res.sum())
+        mask1 = [0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0]
+        mask2 = [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
+        mask3 = [0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1]
+        print(rs)
+
+        rs = np.array(rs)
+        rs0.append(rs)
+        rs1.append(np.dot(mask1, rs))
+        rs2.append(np.dot(mask2, rs))
+        print(rs2)
+        rs3.append(np.dot(mask3, rs))
+
+        s0 = np.sum(rs0) 
+        s1 = np.sum(rs1) 
+        s2 = np.sum(rs2) 
+        s3 = np.sum(rs3)
+
+        print('all triangle', s0)
+        print('both', s1, s1 / s0)
+        print('balance', s2, s2 / s0)
+        print('status', s3, s3 / s0)
+        return s0, s1, s2, s3
+
+    
+
+
+
+
+
+class SignedBipartiteFeaExtra:
+    
+    def  __init__(self, edgelist_fpath, seperator='\t') -> None:
+        self.edgelist_fpath = edgelist_fpath
+        self.seperator = seperator
+
+    def init_edgelists(self):
+        self.pos_a_b = defaultdict(set)
+        self.pos_b_a = defaultdict(set)
+        self.neg_a_b = defaultdict(set)
+        self.neg_b_a = defaultdict(set)
+        
+        edges = []
+        with open(self.edgelist_fpath) as f:
+            for l in f:
+                a, b, s = map(int, l.split('\t'))
+                edges.append((a, b, s))
+                if s == 1:
+                    self.pos_a_b[a].add(b)
+                    self.pos_b_a[b].add(a)
+                else:
+                    self.neg_a_b[a].add(b)
+                    self.neg_b_a[a].add(a)
+        self.edges = np.array(edges)
+
+        self.pos_cnt = np.sum(self.edges[:,2]) #[1 if s >0 else 0 for a,b,s in self.edges])
+        self.neg_cnt = np.sum(self.edges[:,2]) #[1 if s <0 else 0 for a,b,s in self.edges])
+        tmp = np.sum([i[2] for i in self.edges]) / len(self.edges)
+        self.pos = self.pos_cnt / (self.pos_cnt + self.neg_cnt)
+        self.neg = 1 - self.pos
+
+    def calc_signed_bipartite_butterfly_dist(self):
+        mapper2 = {'++++':0, '----':0, '++--':0, '+-+-':0, '+--+':0, '+---':0, '+++-':0}
+
+        # pppp = self.pos ** 4
+        # nnnn = self.neg ** 4
+        # ppnn = (self.pos*self.pos*self.neg*self.neg) * 2 # two ways of this, a buyer has 2 pos, a buyer has 2 neg, both sellers have 1 pos/neg each
+        # pnpn = (self.pos*self.pos*self.neg*self.neg) * 2 # two ways of this, sellers and buyers each have 1 pos/neg each
+        # pnnp = (self.pos*self.pos*self.neg*self.neg) * 2 # two ways of this, a seller has 2 pos, a seller has 2 neg, both buyers have 1 pos/neg each
+        # pnnn = (self.pos*self.neg*self.neg*self.neg) * 4 # 4 ways to select this one neg edge
+        # pppn = (self.pos*self.pos*self.pos*self.neg) * 4 # 4 ways to select this one neg edge
+        # expected_map = {'++++':pppp, '----':nnnn, '++--':ppnn, '+-+-':pnpn, '+--+':pnnp, '+---':pnnn, '+++-':pppn}
+        # a_set = set([i[0] for i in self.edges])
+        # b_set = set([i[1] for i in self.edges])
+        # mapper = {'++++':0, '----':0, '++--':0, '+-+-':0, '+--+':0, '+---':0, '+++-':0}
+
+        # def count_values(a_b_1, a_b_2, a_b_3, a_b_4, a1, a2):
+        #     b1 = a_b_1[a1]
+        #     b2 = a_b_2[a1]
+        #     b3 = a_b_3[a2]
+        #     b4 = a_b_4[a2]
+        #     aa = b1.intersection(b3)
+        #     bb = b2.intersection(b4)
+        #     cnt1 = len(aa)
+        #     cnt2 = len(bb)
+        #     return cnt1 * cnt2 - len(aa.intersection(bb))
+
+        # for a1 in a_set:
+        #     for a2 in a_set:
+        #         if a1 == a2: continue
+        #         mapper['++++']+= count_values(self.pos_a_b, self.pos_a_b, self.pos_a_b, self.pos_a_b, a1, a2)
+        #         mapper['++--']+= count_values(self.pos_a_b, self.pos_a_b, self.neg_a_b, self.neg_a_b, a1, a2)
+        #         mapper['+++-']+= count_values(self.pos_a_b, self.pos_a_b, self.pos_a_b, self.neg_a_b, a1, a2)
+        #         mapper['+---']+= count_values(self.pos_a_b, self.neg_a_b, self.neg_a_b, self.neg_a_b, a1, a2)
+        #         mapper['+-+-']+= count_values(self.pos_a_b, self.neg_a_b, self.pos_a_b, self.neg_a_b, a1, a2)
+        #         mapper['+--+']+= count_values(self.pos_a_b, self.neg_a_b, self.neg_a_b, self.pos_a_b, a1, a2)
+        #         mapper['----']+= count_values(self.neg_a_b, self.neg_a_b, self.neg_a_b, self.neg_a_b, a1, a2)
+
+        # sum_s = sum(mapper.values())
+        # total = sum_s
+        # for i in mapper:
+        #     print(i, mapper[i], mapper[i]/sum_s)
+        #     expected = expected_map[i] * total
+        #     expected_prob = expected_map[i]
+        #     real = mapper[i]
+        #     try:
+        #         surprise = (real - expected) / np.sqrt(total * expected_prob * (1-expected_prob))
+        #     except:
+        #         surprise = 'N/A'
+        #     #pvalue = st.norm.cdf(surprise)
+        #     print('type {} (count, real_perc, expected, expected_prob, surprise):\t{}\t{}\t{}\t{}\t{}'.format(
+        #         i, real, real/total, expected, expected_prob, surprise))#, pvalue))
+
+        # print('Balance', 1-mapper['+---']/total-mapper['+++-']/total, 1-expected_map['+---']-expected_map['+++-'])
+        # print('UnBalance', mapper['+---']/total+mapper['+++-']/total, expected_map['+---']+expected_map['+++-']
 
 
 if __name__ == "__main__":

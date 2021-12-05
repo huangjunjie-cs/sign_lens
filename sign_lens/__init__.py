@@ -4,5 +4,5 @@ __version__ = get_versions()['version']
 del get_versions
 
 
-from .utils import SignedTriadFeaExtra
-from .sign_lens import SignLens
+from .utils import SignedTriadFeaExtra, SignedTriadFeaExtraByMatrce
+from .sign_lens import SignLens, SignBipartiteLens

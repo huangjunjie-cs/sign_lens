@@ -10,7 +10,9 @@ sign_lens Documentation
 .. toctree::
    :maxdepth: 2
 
+   introduction
    installation
    usage
-   release-history
+   preliminary
    api
+   release-history
