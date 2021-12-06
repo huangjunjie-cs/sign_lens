@@ -48,12 +48,23 @@ class SignLensBase:
         """
         raise NotImplementedError("Subclasses should implement this")
 
+    def report_signed_metrics(self):
+        """
+        report_signed_metrics print signed social networks analysis metrics
+
+
+        Returns
+        -------
+        NoneType
+        """
+        raise NotImplementedError("Subclasses should implement this")
+
 
 class SignLens(SignLensBase):
     """
     SignLens is a class for analyzing signed networks.
     """
-    def __init__(self, edgelist_fpath, seperator='\t'):
+    def __init__(self, edgelist_fpath, seperator='\t', header=None):
         """
         __init__ sign_lens class for signed graph modeling
 
@@ -66,11 +77,10 @@ class SignLens(SignLensBase):
         seperator : str, optional
             The file seperator, by default '\t'
         """
-        self.tsv_header = None
         self.edgelist_fpath = edgelist_fpath
         self.edge_df = pd.read_csv(self.edgelist_fpath,
                                    sep=seperator,
-                                   header=None)
+                                   header=header)
         self.edge_df.columns = ['source_node', 'target_node', 'sign']
 
         node_list = set(self.edge_df.target_node.tolist() +
@@ -108,10 +118,11 @@ class SignLens(SignLensBase):
         """
         args = {}
 
-        node_num, edge_num, pos_r = self.calc_sign_dist()
-        args['The number of nodes'] = node_num
-        args['The number of edges'] = edge_num
+        pos_num, neg_num, pos_r = self.calc_sign_dist()
+        args['The number of nodes'] = self.calc_node_num()
+        args['The number of edges (+, -, total)'] = (pos_num, neg_num, pos_num + neg_num)
         args['sign distribution (+)'] = pos_r
+
         triads_dist, b_ratio, u_ratio = self.calc_signed_triads_dist()
         args['balanced triangle distribution'] = b_ratio
         args['unbalanced triangle distribution'] = u_ratio
@@ -126,7 +137,7 @@ class SignLens(SignLensBase):
 
         fnames = ['In-degree', 'Out-degree']
         datas = [(G_in_degree, pos_G_in_degree, neg_G_in_degree),
-                 (G_out_degree, pos_G_out_degree, pos_G_out_degree)]
+                 (G_out_degree, pos_G_out_degree, neg_G_out_degree)]
 
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
@@ -206,7 +217,6 @@ class SignLens(SignLensBase):
         t = Texttable()
         t.add_rows([["Metrics", "Value"]] +
                    [[k.replace("_", " ").capitalize(), args[k]] for k in keys])
-        print('=' * 10)
         print(t.draw())
 
     def calc_node_num(self) -> int:
@@ -343,18 +353,18 @@ class SignLens(SignLensBase):
 
 
 class SignBipartiteLens(SignLensBase):
-    def __init__(self, edgelist_fpath, seperator='\t'):
+    def __init__(self, edgelist_fpath, seperator='\t', header=None):
         self.edgelist_fpath = edgelist_fpath
         self.seperator = seperator
         self.edge_df = pd.read_csv(self.edgelist_fpath,
                                    sep=seperator,
-                                   header=None)
+                                   header=header)
         self.edge_df.columns = ['node_u', 'node_v', 'sign']
 
     def calc_signed_bipartite_butterfly_dist(self):
-        model = SignedBipartiteFeaExtra(self.edgelist_fpath)
-        res = model.calc_signed_bipartite_butterfly_dist()
-        return res
+        model = SignedBipartiteFeaExtra(self.edgelist_fpath, seperator=self.seperator, header=None)
+        signs, res = model.calc_signed_bipartite_butterfly_dist()
+        return signs, res
 
     def calc_node_num(self) -> int:
         r"""
@@ -366,7 +376,7 @@ class SignBipartiteLens(SignLensBase):
             the node number
         """
         node_list1 = set(self.edge_df.node_u.tolist())
-        node_list2 = set(self.edge_df.note_v.tolist())
+        node_list2 = set(self.edge_df.node_v.tolist())
         return len(set(node_list1)), len(set(node_list2))
 
     def calc_edge_num(self) -> int:
@@ -394,5 +404,23 @@ class SignBipartiteLens(SignLensBase):
 
         return (pos_num, neg_num, pos_num / (pos_num + neg_num))
 
-    def calc_signed_degree(self):
-        return 1
+
+    def report_signed_metrics(self, output_dir='output') -> str:
+        args = {}
+
+        args['The number of nodes'] = self.calc_node_num()
+        pos_num, neg_num, pos_r = self.calc_sign_dist()
+        args['The number of edges (+, -, total)'] = (pos_num, neg_num, pos_num + neg_num)
+        args['sign distribution (+)'] = pos_r
+        signs, res = self.calc_signed_bipartite_butterfly_dist()
+        args['balanced butterfly distribution'] = sum(res[:-2])
+        args['unbalanced butterfly distribution'] = sum(res[-2:])
+        sign_str = ",".join(signs)
+        args[f'signed butterfly ({sign_str})'] = [round(i, 3) for i in res]
+
+        keys = args.keys()
+        t = Texttable()
+        t.add_rows([["Metrics", "Value"]] +
+                   [[k.replace("_", " ").capitalize(), args[k]] for k in keys])
+        print('=' * 10)
+        print(t.draw())

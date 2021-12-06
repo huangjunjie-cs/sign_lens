@@ -3,7 +3,7 @@ import os
 import sys
 import argparse
 
-from .sign_lens import SignLens
+from .sign_lens import SignBipartiteLens, SignLens
 
 
 def help():
@@ -34,6 +34,7 @@ def options():
                                  usage="python3 %(prog)s [options]",
                                  description="signlens - A package for analyzing signed graphs.")
     ap.add_argument("-f", "--file", help="The tsv file need to be analyzed")
+    ap.add_argument("-t", '--type', help="The signed network type need to be analyzed")
 
     args = ap.parse_args()
     return args
@@ -45,8 +46,11 @@ def main():
     args = options()
     check(args)
     fpath = args.file
-
-    model = SignLens(fpath)
+    if args.type == 'bipartite':
+        model = SignBipartiteLens(fpath)
+    else:
+        model = SignLens(fpath)
+    
     model.report_signed_metrics()
 
 
@@ -55,7 +59,6 @@ def run_as_command():
     if float(version) < 3.6:
         print("[-] signlens requires Python version 3.6+.")
         sys.exit(0)
-
     main()
 
 

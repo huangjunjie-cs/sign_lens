@@ -2,8 +2,8 @@
 Installation
 ============
 
-Just use `pip` to install 
-You can install ``sign_lens`` using pip ::
+
+You can install ``sign_lens`` using pip::
 
     $ pip install sign_lens
 

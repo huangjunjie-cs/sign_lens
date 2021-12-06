@@ -7,12 +7,16 @@ Usage
 Command line usage 
 -------------------------
 
+After finish the :doc:`installation`, it can be invoked from the command line by:
+
 
 .. code-block:: bash
 
     $ signlens -f tests/test_datas/bitcoin_alpha.edgelist
 
-it will output the metrics for a signed networks
+
+
+It will output the metrics report table for a signed networks
 
 ::
 
@@ -45,11 +49,37 @@ it will output the metrics for a signed networks
     | Singular value distribution           | output/Top-K.pdf                 |
     +---------------------------------------+----------------------------------+
 
+For signed bipartite networks, you can run it by:
+
+.. code-block:: bash
+
+    signlens -f tests/test_datas/senate1to10.edgelist -t bipartite
+
+::
+
+    +--------------------------------------+------------------------------------+
+    | Metrics                              | Value                              |
+    +======================================+====================================+
+    | The number of nodes                  | (145, 1056)                        |
+    +--------------------------------------+------------------------------------+
+    | The number of edges (+, -, total)    | (14979, 12104, 27083)              |
+    +--------------------------------------+------------------------------------+
+    | Sign distribution (+)                | 0.553                              |
+    +--------------------------------------+------------------------------------+
+    | Balanced butterfly distribution      | 0.798                              |
+    +--------------------------------------+------------------------------------+
+    | Unbalanced butterfly distribution    | 0.202                              |
+    +--------------------------------------+------------------------------------+
+    | Signed butterfly                     | [0.262, 0.108, 0.11, 0.184, 0.133, |
+    | (++++,+--+,++--,+-+-,----,+++-,+---) | 0.122, 0.081]                      |
+    +--------------------------------------+------------------------------------+
+
+
 
 Package usage
 ---------------
 
-Or you can use it by import some class you want to use.
+You can use it by importing some class you want to use.
 
 .. code-block:: python
 
