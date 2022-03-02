@@ -17,3 +17,4 @@ sphinx-copybutton
 sphinx_rtd_theme
 myst-parser # add markdown support
 sphinx-autobuild
+sphinxcontrib-bibtex
