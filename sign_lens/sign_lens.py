@@ -8,7 +8,7 @@ from texttable import Texttable
 from collections import Counter
 import matplotlib.pyplot as plt
 
-from .utils import SignedTriadFeaExtra, SignedBipartiteFeaExtra
+from .utils import SignedTriadFeaExtra, SignedButterflyFeaExtra
 
 
 class SignLensBase:
@@ -64,6 +64,7 @@ class SignLens(SignLensBase):
     """
     SignLens is a class for analyzing signed networks.
     """
+
     def __init__(self, edgelist_fpath, seperator='\t', header=None):
         """
         __init__ sign_lens class for signed graph modeling
@@ -362,8 +363,8 @@ class SignBipartiteLens(SignLensBase):
         self.edge_df.columns = ['node_u', 'node_v', 'sign']
 
     def calc_signed_bipartite_butterfly_dist(self):
-        model = SignedBipartiteFeaExtra(self.edgelist_fpath, seperator=self.seperator, header=None)
-        signs, res = model.calc_signed_bipartite_butterfly_dist()
+        model = SignedButterflyFeaExtra(self.edgelist_fpath, seperator=self.seperator, header=None)
+        signs, res = model.calc_signed_butterfly_dist()
         return signs, res
 
     def calc_node_num(self) -> int:
@@ -404,7 +405,6 @@ class SignBipartiteLens(SignLensBase):
 
         return (pos_num, neg_num, pos_num / (pos_num + neg_num))
 
-
     def report_signed_metrics(self, output_dir='output') -> str:
         args = {}
 
@@ -412,7 +412,7 @@ class SignBipartiteLens(SignLensBase):
         pos_num, neg_num, pos_r = self.calc_sign_dist()
         args['The number of edges (+, -, total)'] = (pos_num, neg_num, pos_num + neg_num)
         args['sign distribution (+)'] = pos_r
-        signs, res = self.calc_signed_bipartite_butterfly_dist()
+        signs, res = self.calc_signed_butterfly_dist()
         args['balanced butterfly distribution'] = sum(res[:-2])
         args['unbalanced butterfly distribution'] = sum(res[-2:])
         sign_str = ",".join(signs)
@@ -422,5 +422,4 @@ class SignBipartiteLens(SignLensBase):
         t = Texttable()
         t.add_rows([["Metrics", "Value"]] +
                    [[k.replace("_", " ").capitalize(), args[k]] for k in keys])
-        print('=' * 10)
         print(t.draw())

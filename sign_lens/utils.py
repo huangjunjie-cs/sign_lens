@@ -5,6 +5,7 @@ import scipy.sparse as sp
 from collections import defaultdict
 from tqdm import tqdm
 
+
 class SignedTriadFeaExtra:
 
     def __init__(self, edgelist_fpath, undirected=False, seperator='\t'):
@@ -58,9 +59,9 @@ class SignedTriadFeaExtra:
 
     def common_neighbors(self, u, v):
         u_neighbors = self.pos_in_edgelists[u] + self.neg_in_edgelists[u] + \
-                      self.pos_out_edgelists[u] + self.neg_out_edgelists[u]
+            self.pos_out_edgelists[u] + self.neg_out_edgelists[u]
         v_neighbors = self.pos_in_edgelists[v] + self.neg_in_edgelists[v] + \
-                      self.pos_out_edgelists[v] + self.neg_out_edgelists[v]
+            self.pos_out_edgelists[v] + self.neg_out_edgelists[v]
         return len(set(u_neighbors).intersection(set(v_neighbors)))
 
     def extract_triad_counts(self, u, v) -> tuple:
@@ -70,7 +71,7 @@ class SignedTriadFeaExtra:
 
             A \times B \alpha
 
-        
+
         """
         d1_1 = len(set(self.pos_out_edgelists[u]).intersection(set(self.pos_in_edgelists[v])))
         d1_2 = len(set(self.pos_out_edgelists[u]).intersection(set(self.neg_in_edgelists[v])))
@@ -99,7 +100,7 @@ class SignedTriadFeaExtra:
         return s1 + s2, s0
 
     def calc_balance_triads_dist(self):
-        t1 = []  # +++ 
+        t1 = []  # +++
         t2 = []  # ++-
         t3 = []  # +--
         t4 = []  # ---
@@ -117,8 +118,8 @@ class SignedTriadFeaExtra:
 
         for x in list(self.neg_out_edgelists):
             for y in self.neg_out_edgelists[x]:
-                mask1 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]  # +++ 
-                mask2 = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]  # ++- 
+                mask1 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]  # +++
+                mask2 = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]  # ++-
                 mask3 = [0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0]  # +--
                 mask4 = [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1]  # ---
                 rs = self.extract_triad_counts(x, y)
@@ -179,7 +180,6 @@ class SignedTriadFeaExtraByMatrace:
         self.undirected = undirected
         self.seperator = seperator
         self.init_matrice(edgelist_fpath)
-        
 
     def init_matrice(self, edgelist_fpath):
         pos_edgelist = []
@@ -205,18 +205,16 @@ class SignedTriadFeaExtraByMatrace:
 
         pos_edge_array = np.array(pos_edgelist)
         neg_edge_array = np.array(neg_edgelist)
-        
+
         row = pos_edge_array[:, 0]
         col = pos_edge_array[:, 1]
         data = np.ones_like(pos_edge_array[:, 0])
         self.pos_mat = sp.coo_matrix((data, (row, col)), shape=(node_num, node_num))
-        
+
         row = neg_edge_array[:, 0]
         col = neg_edge_array[:, 1]
         data = np.ones_like(neg_edge_array[:, 0])
         self.neg_mat = sp.coo_matrix((data, (row, col)), shape=(node_num, node_num))
-
-
 
     def calc_balance_and_status_triads_num(self):
         r"""
@@ -239,7 +237,7 @@ class SignedTriadFeaExtraByMatrace:
         rs0 = []
         rs1 = []
         rs2 = []
-        rs3 = []   
+        rs3 = []
         # pos
         rs = []
         for t in ts:
@@ -248,7 +246,6 @@ class SignedTriadFeaExtraByMatrace:
                 res.setdiag(0)
                 res = res.multiply(A_plus)
                 rs.append(res.sum())
-        print(rs)
         mask1 = [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1]  # both satify
         mask2 = [0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]  # only balance
         mask3 = [0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0]  # only status
@@ -256,7 +253,6 @@ class SignedTriadFeaExtraByMatrace:
         rs0.append(rs)
         rs1.append(np.dot(mask1, rs))
         rs2.append(np.dot(mask2, rs))
-        print(rs2)
         rs3.append(np.dot(mask3, rs))
 
         rs = []
@@ -269,18 +265,16 @@ class SignedTriadFeaExtraByMatrace:
         mask1 = [0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0]
         mask2 = [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
         mask3 = [0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1]
-        print(rs)
 
         rs = np.array(rs)
         rs0.append(rs)
         rs1.append(np.dot(mask1, rs))
         rs2.append(np.dot(mask2, rs))
-        print(rs2)
         rs3.append(np.dot(mask3, rs))
 
-        s0 = np.sum(rs0) 
-        s1 = np.sum(rs1) 
-        s2 = np.sum(rs2) 
+        s0 = np.sum(rs0)
+        s1 = np.sum(rs1)
+        s2 = np.sum(rs2)
         s3 = np.sum(rs3)
 
         print('all triangle', s0)
@@ -290,9 +284,9 @@ class SignedTriadFeaExtraByMatrace:
         return s0, s1, s2, s3
 
 
-class SignedBipartiteFeaExtra:
-    
-    def  __init__(self, edgelist_fpath, seperator='\t', header=None) -> None:
+class SignedButterflyFeaExtra:
+
+    def __init__(self, edgelist_fpath, seperator='\t', header=None) -> None:
         self.edgelist_fpath = edgelist_fpath
         self.seperator = seperator
         self.init_edgelists()
@@ -302,20 +296,19 @@ class SignedBipartiteFeaExtra:
         self.pos_b_a = defaultdict(set)
         self.neg_a_b = defaultdict(set)
         self.neg_b_a = defaultdict(set)
-        
+
         edges = []
         with open(self.edgelist_fpath) as f:
             for l in f:
                 a, b, s = map(int, l.strip().split(self.seperator))
                 edges.append((a, b, s))
-                if s > 0 :
+                if s > 0:
                     self.pos_a_b[a].add(b)
                     self.pos_b_a[b].add(a)
                 else:
                     self.neg_a_b[a].add(b)
                     self.neg_b_a[a].add(a)
         self.edges = np.array(edges)
-
 
     def count_values(self, a_b_1, a_b_2, a_b_3, a_b_4, a1, a2):
         b1 = a_b_1[a1]
@@ -328,103 +321,22 @@ class SignedBipartiteFeaExtra:
         cnt2 = len(bb)
         return cnt1 * cnt2 - len(aa.intersection(bb))
 
+    def calc_signed_butterfly_dist(self):
 
-    def calc_signed_bipartite_butterfly_dist(self):
-        
         a_set = set([i[0] for i in self.edges])
-        mapper = {'++++':0, '----':0, '++--':0, '+-+-':0, '+--+':0, '+---':0, '+++-':0}
-       
+        mapper = {'++++': 0, '----': 0, '++--': 0, '+-+-': 0, '+--+': 0, '+---': 0, '+++-': 0}
+
         for a1 in tqdm(a_set):
             for a2 in a_set:
-                if a1 == a2: continue
-                mapper['++++']+= self.count_values(self.pos_a_b, self.pos_a_b, self.pos_a_b, self.pos_a_b, a1, a2)
-                mapper['++--']+= self.count_values(self.pos_a_b, self.pos_a_b, self.neg_a_b, self.neg_a_b, a1, a2)
-                mapper['+++-']+= self.count_values(self.pos_a_b, self.pos_a_b, self.pos_a_b, self.neg_a_b, a1, a2)
-                mapper['+---']+= self.count_values(self.pos_a_b, self.neg_a_b, self.neg_a_b, self.neg_a_b, a1, a2)
-                mapper['+-+-']+= self.count_values(self.pos_a_b, self.neg_a_b, self.pos_a_b, self.neg_a_b, a1, a2)
-                mapper['+--+']+= self.count_values(self.pos_a_b, self.neg_a_b, self.neg_a_b, self.pos_a_b, a1, a2)
-                mapper['----']+= self.count_values(self.neg_a_b, self.neg_a_b, self.neg_a_b, self.neg_a_b, a1, a2)
-
-        sum_s = sum(mapper.values())
-        res_sign = [
-            '++++',
-            '+--+',
-            '++--',
-            '+-+-',
-            '----',
-            '+++-',
-            '+---'
-        ]
-        return res_sign, [mapper[i]/sum_s for i in res_sign]
-
-
-class SignedBipartiteFeaExtraByMatrace:
-    
-    def  __init__(self, edgelist_fpath, seperator='\t', header=None) -> None:
-        self.edgelist_fpath = edgelist_fpath
-        self.seperator = seperator
-        self.init_matrice(edgelist_fpath)
-
-    def init_matrice(self, edgelist_fpath):
-        pos_edgelist = []
-        neg_edgelist = []
-        node_set1 = {}
-        node_set2 = {}
-        with open(edgelist_fpath) as f:
-            for line in f.readlines():
-                x, y, z = line.strip().split(self.seperator)
-                if not x in node_set1:
-                    node_set1[x] = len(node_set1)
-                if not y in node_set2:
-                    node_set2[y] = len(node_set2)
-
-                x = int(x)
-                y = int(y)
-                z = int(z)
-                if z == 1:
-                    pos_edgelist.append((x, y))
-                else:
-                    neg_edgelist.append((x, y))
-
-        node_num1 = len(node_set1)
-        node_num2 = len(node_set2)
-        print(node_num1, node_num2)
-
-        pos_edge_array = np.array(pos_edgelist)
-        neg_edge_array = np.array(neg_edgelist)
-        
-        row = pos_edge_array[:, 0]
-        col = pos_edge_array[:, 1]
-        data = np.ones_like(pos_edge_array[:, 0])
-        self.pos_mat = sp.coo_matrix((data, (row, col)), shape=(node_num1, node_num2))
-        
-        row = neg_edge_array[:, 0]
-        col = neg_edge_array[:, 1]
-        data = np.ones_like(neg_edge_array[:, 0])
-        self.neg_mat = sp.coo_matrix((data, (row, col)), shape=(node_num1, node_num2))
-
-
-
-    def calc_signed_bipartite_butterfly_dist(self):
-        
-        mapper = {'++++':0, '----':0, '++--':0, '+-+-':0, '+--+':0, '+---':0, '+++-':0}
-        mapper_operataions = [
-            [self.pos_mat, self.pos_mat.T, self.pos_mat, self.pos_mat.T],
-            [self.neg_mat, self.neg_mat.T, self.neg_mat, self.neg_mat.T],
-            [self.pos_mat, self.pos_mat.T, self.neg_mat, self.neg_mat.T],
-            [self.pos_mat, self.neg_mat.T, self.pos_mat, self.neg_mat.T],
-            [self.pos_mat, self.neg_mat.T, self.neg_mat, self.pos_mat.T],
-            [self.pos_mat, self.neg_mat.T, self.neg_mat, self.neg_mat.T],
-            [self.pos_mat, self.pos_mat.T, self.pos_mat, self.neg_mat.T],
-        ]
-        for map, operation in zip(mapper.keys(), mapper_operataions):
-            a, b, c, d = operation
-            res = a.dot(b)
-            res.setdiag(0)
-            res = res.dot(c)
-            res = res.dot(d)
-            v = res.diagonal().sum()
-            mapper[map] = v
+                if a1 == a2:
+                    continue
+                mapper['++++'] += self.count_values(self.pos_a_b, self.pos_a_b, self.pos_a_b, self.pos_a_b, a1, a2)
+                mapper['++--'] += self.count_values(self.pos_a_b, self.pos_a_b, self.neg_a_b, self.neg_a_b, a1, a2)
+                mapper['+++-'] += self.count_values(self.pos_a_b, self.pos_a_b, self.pos_a_b, self.neg_a_b, a1, a2)
+                mapper['+---'] += self.count_values(self.pos_a_b, self.neg_a_b, self.neg_a_b, self.neg_a_b, a1, a2)
+                mapper['+-+-'] += self.count_values(self.pos_a_b, self.neg_a_b, self.pos_a_b, self.neg_a_b, a1, a2)
+                mapper['+--+'] += self.count_values(self.pos_a_b, self.neg_a_b, self.neg_a_b, self.pos_a_b, a1, a2)
+                mapper['----'] += self.count_values(self.neg_a_b, self.neg_a_b, self.neg_a_b, self.neg_a_b, a1, a2)
 
         sum_s = sum(mapper.values())
         res_sign = [
