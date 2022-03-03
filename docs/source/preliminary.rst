@@ -153,6 +153,15 @@ So when we analyze the signed bipartite networks, we can have two different anal
 Similarly, we can compute the number of signed Butterflies by computing the intersection of neighboring nodes or using matrix operations.
 
 
+Signed Heterogeneous Networks
+-----------------------------------
+
+Signed Meta Path
+*********************************************
+
+
+
+
 References
 -------------------------
 
